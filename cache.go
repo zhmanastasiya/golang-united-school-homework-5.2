@@ -16,12 +16,10 @@ func NewCache() Cache {
 }
 func (c *Cache) Get(key string) (string, bool) {
 	k, ok := c.Items[key]
-
-	if k.Deadline.After(time.Now()) {
-		delete(c.Items, key)
+	if !ok {
+		return "", false
 	}
-
-	return k.Value, ok
+	return k.Value, true
 }
 func (c *Cache) Put(key, value string) {
 	k := Item{Value: value, Deadline: time.Now().Add(1 * time.Minute)}
