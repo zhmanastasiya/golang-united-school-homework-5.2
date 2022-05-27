@@ -42,7 +42,7 @@ func (c *Cache) Keys() []string {
 	for k, p := range c.Items {
 		if p.Deadline.Before(now) {
 			keys = append(keys, k)
-		} else {
+		} else if now.After(p.Deadline) {
 			delete(c.Items, k)
 		}
 	}
