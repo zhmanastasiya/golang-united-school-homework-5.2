@@ -14,45 +14,33 @@ func NewCache() Cache {
 	i := make(map[string]Item)
 	return Cache{Items: i}
 }
-
 func (c *Cache) Get(key string) (string, bool) {
 	k, ok := c.Items[key]
 
-	if !ok {
-		return "", false
-	}
-
-	if !k.Deadline.Before(time.Now()) {
+	if k.Deadline.After(time.Now()) {
 		delete(c.Items, key)
-		return "", false
 	}
 
 	return k.Value, ok
 }
-
 func (c *Cache) Put(key, value string) {
-	c.Items[key] = Item{
-		Value:    value,
-		Deadline: time.Now().Add(10 * time.Minute)}
+	k := Item{Value: value, Deadline: time.Now().Add(1 * time.Minute)}
+	c.Items[key] = k
 }
-
 func (c *Cache) Keys() []string {
 	keys := []string{}
 	now := time.Now()
 	for k, p := range c.Items {
-		if p.Deadline.Before(now) {
+		if now.Before(p.Deadline) {
 			keys = append(keys, k)
-		} else if now.After(p.Deadline) {
+		} else {
 			delete(c.Items, k)
 		}
+
 	}
 	return keys
 }
-
 func (c *Cache) PutTill(key, value string, deadline time.Time) {
-	c.Items[key] = Item{
-		Value:    value,
-		Deadline: deadline,
-	}
-
+	k := Item{Value: value, Deadline: deadline}
+	c.Items[key] = k
 }
