@@ -19,8 +19,14 @@ func (c *Cache) Get(key string) (string, bool) {
 	if !ok {
 		return "", false
 	}
+
+	if time.Now().After(k.Deadline) {
+		delete(c.Items, key)
+		return "", false
+	}
 	return k.Value, true
 }
+
 func (c *Cache) Put(key, value string) {
 	k := Item{Value: value, Deadline: time.Now().Add(1 * time.Minute)}
 	c.Items[key] = k
