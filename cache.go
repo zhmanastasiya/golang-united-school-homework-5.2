@@ -17,29 +17,42 @@ func NewCache() Cache {
 
 func (c *Cache) Get(key string) (string, bool) {
 	k, ok := c.Items[key]
+
+	if !ok {
+		return "", false
+	}
+
+	if !k.Deadline.Before(time.Now()) {
+		delete(c.Items, key)
+		return "", false
+	}
+
 	return k.Value, ok
 }
 
 func (c *Cache) Put(key, value string) {
-	k := Item{Value: value, Deadline: time.Now().Add(1 * time.Minute)}
-	c.Items[key] = k
+	c.Items[key] = Item{
+		Value:    value,
+		Deadline: time.Now().Add(10 * time.Minute)}
 }
 
 func (c *Cache) Keys() []string {
 	keys := []string{}
 	now := time.Now()
 	for k, p := range c.Items {
-		if now.Before(p.Deadline) {
+		if p.Deadline.Before(now) {
 			keys = append(keys, k)
 		} else {
 			delete(c.Items, k)
 		}
-
 	}
 	return keys
 }
 
 func (c *Cache) PutTill(key, value string, deadline time.Time) {
-	k := Item{Value: value, Deadline: deadline}
-	c.Items[key] = k
+	c.Items[key] = Item{
+		Value:    value,
+		Deadline: deadline,
+	}
+
 }
